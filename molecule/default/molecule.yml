@@ -29,3 +29,17 @@ verifier:
   lint:
     name: flake8
     enabled: false
+ test_sequence:
+    - lint
+    - cleanup
+    - destroy
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    # - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy
