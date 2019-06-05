@@ -3,11 +3,11 @@ daemon                  no
 debug                   no
 realm                   dummy.io
 syncinterval            600
-udp_listen              {{ ansible_default_ipv4.address }}:{{ restund_udp_listen_port }}
+udp_listen              {{ restund_network_interface.address }}:{{ restund_udp_listen_port }}
 udp_sockbuf_size        524288
-tcp_listen              {{ ansible_default_ipv4.address }}:{{ restund_tcp_listen_port }}
+tcp_listen              {{ restund_network_interface.address }}:{{ restund_tcp_listen_port }}
 # TODO: Readd TLS
-# tls_listen              {{ ansible_default_ipv4.address }}:{{ restund_tls_listen_port }},/usr/local/etc/restund/restund.pem
+# tls_listen              {{ restund_network_interface.address }}:{{ restund_tls_listen_port }},/usr/local/etc/restund/restund.pem
 
 # modules
 module_path             /usr/local/lib/restund/modules
@@ -25,8 +25,8 @@ auth_nonce_expiry       3600
 # turn
 turn_max_allocations    64000
 turn_max_lifetime       3600
-turn_relay_addr         {{ ansible_default_ipv4.address }}
-{% if ansible_default_ipv4.address != public_ipv4 %}
+turn_relay_addr         {{ restund_network_interface.address }}
+{% if restund_network_interface.address != public_ipv4 %}
 turn_public_addr        {{ public_ipv4 }}
 {% endif %}
 
