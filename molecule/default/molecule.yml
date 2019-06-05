@@ -24,12 +24,7 @@ provisioner:
     enabled: false
 scenario:
   name: default
-verifier:
-  name: testinfra
-  lint:
-    name: flake8
-    enabled: false
- test_sequence:
+  test_sequence:
     - lint
     - cleanup
     - destroy
@@ -43,3 +38,8 @@ verifier:
     - verify
     - cleanup
     - destroy
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+    enabled: false
