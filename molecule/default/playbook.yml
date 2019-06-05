@@ -12,7 +12,7 @@
   # vars:
   roles:
     - ansible-role-ntp
-    # - ansible-restund
-  # post_tasks:
-  #   - name: show result nodes
-  #     debug: "cool!"
+    - ansible-restund
+  post_tasks:
+    - name: show result nodes
+      debug: "cool!"
