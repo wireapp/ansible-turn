@@ -10,10 +10,10 @@ platforms:
     # for systemd, use these base images:
     image: "geerlingguy/docker-${MOLECULE_DISTRO:-ubuntu1604}-ansible:latest"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
-    # networks_mode: host
-    # volumes:
-      # TODO: this does not work on osx - /sys/fs/cgroup:/sys/fs/cgroup:ro  # for systemd
-      # TODO: this does not work on osx - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro  # for ntp/timedatectl
+    networks_mode: host
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro  # for systemd
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro  # for ntp/timedatectl
     privileged: true  # for systemd
     pre_build_image: true
 provisioner:

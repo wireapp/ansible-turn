@@ -1,0 +1,26 @@
+---
+language: python
+services: docker
+
+branches:
+  only:
+    - master
+
+env:
+  global:
+    - ROLE_NAME: ansible-restund
+  matrix:
+    - MOLECULE_DISTRO: ubuntu1604
+
+install:
+  # Install test dependencies.
+  - pip install molecule docker
+
+script:
+  # Run tests.
+  - travis_wait 50 molecule test
+
+# ansible-galaxy import
+# https://docs.ansible.com/ansible/latest/reference_appendices/galaxy.html#travis-integrations
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
