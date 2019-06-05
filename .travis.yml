@@ -2,11 +2,6 @@
 language: python
 services: docker
 
-branches:
-  only:
-    - molecule
-    # TODO - master
-
 env:
   global:
     - ROLE_NAME: ansible-restund
