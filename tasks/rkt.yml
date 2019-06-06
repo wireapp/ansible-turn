@@ -7,11 +7,13 @@
   tags:
     - rkt
 
-- command: /bin/bash /tmp/install-rkt.sh creates=/usr/bin/rkt
+- name: install rkt
+  command: /bin/bash /tmp/install-rkt.sh creates=/usr/bin/rkt
   tags:
     - rkt
 
-- command: /bin/bash /tmp/install-rkt.sh
+- name: force reinstall rkt
+  command: /bin/bash /tmp/install-rkt.sh
   when: force_reinstall_rkt is defined and force_reinstall_rkt
   tags:
     - rkt
@@ -46,6 +48,7 @@
 #     - rkt
 
 # TODO: Cannot list keys - how to?
+# TODO: Cannot make rkt trust idempotent... because it always changes the file modified time?
 - name: trust public keys in the public.wire.com bucket
   command: |
     rkt trust
@@ -56,15 +59,23 @@
   with_items: "{{ rkt_pubkeys|default([]) }}"
   tags:
     - rkt
+    - molecule-notest
 
+# TODO: Cannot make rkt trust idempotent... because it always changes the file modified time?
 - name: trust stage1-fly
-  command: rkt trust --skip-fingerprint-review --prefix "coreos.com/rkt/stage1-fly"
+  command: |
+    rkt trust --skip-fingerprint-review --prefix "coreos.com/rkt/stage1-fly"
   tags:
     - rkt
+    - molecule-notest
 
-# TODO: Replace with file?
-- name: Set permissions
-  shell: |
-    chown -R root:rkt-admin /etc/rkt
+- name: Set permissions for everything under /etc/rkt
+  file:
+    path: /etc/rkt
+    state: directory
+    recurse: yes
+    group: rkt-admin
+    modification_time: preserve
+    access_time: preserve
   tags:
     - rkt
