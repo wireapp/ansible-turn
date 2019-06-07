@@ -15,6 +15,8 @@ restund_tls_listen_port: 5349
 restund_udp_status_port: 33000
 restund_http_status_port: 8080
 
+restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_default_ipv4.interface }}{% else %}eth0{% endif %}"
+
 aci_base_url: https://public-wire-com.s3-eu-west-1.amazonaws.com
 rkt_s3_bucket_vhost: '{{ aci_base_url|regex_replace("^http(s?)://","") }}'
 
