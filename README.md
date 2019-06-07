@@ -4,7 +4,6 @@
 
 - ansible >= 2.6
 - ensure you have generated a secret before as described [here](https://github.com/wireapp/wire-server-deploy/blob/master/charts/brig/values.yaml#L66-L71)
-- entr (for testing with molecule)
 
 ## Preparation
 
