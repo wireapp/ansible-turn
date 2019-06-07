@@ -48,7 +48,7 @@
 #     - rkt
 
 # TODO: Cannot list keys - how to?
-# TODO: Cannot make rkt trust idempotent... because it always changes the file modified time?
+# TODO: IDEMPOTENCE Cannot make rkt trust idempotent... because it always changes the file modified time?
 - name: trust public keys in the public.wire.com bucket
   command: |
     rkt trust
@@ -59,15 +59,13 @@
   with_items: "{{ rkt_pubkeys|default([]) }}"
   tags:
     - rkt
-    - molecule-notest
 
-# TODO: Cannot make rkt trust idempotent... because it always changes the file modified time?
+# TODO: IDEMPOTENCE Cannot make rkt trust idempotent... because it always changes the file modified time?
 - name: trust stage1-fly
   command: |
     rkt trust --skip-fingerprint-review --prefix "coreos.com/rkt/stage1-fly"
   tags:
     - rkt
-    - molecule-notest
 
 - name: Set permissions for everything under /etc/rkt
   file:
