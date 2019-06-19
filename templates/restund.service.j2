@@ -14,8 +14,8 @@ ExecStart=/usr/bin/rkt run \
     --hosts-entry=host \
     --volume volume-usr-local-etc-restund,kind=host,source=/etc/restund,readOnly=true \
     {{ aci_base_url }}/restund/restund-{{ versions.restund }}_linux_amd64.aci \
-    --user=restund \
-    --group=restund
+    --user={{ restund_user }} \
+    --group={{ restund_user }}
 ExecStopPost=/usr/bin/rkt gc --mark-only
 KillMode=mixed
 Restart=always
