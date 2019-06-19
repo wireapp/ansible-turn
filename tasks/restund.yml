@@ -1,14 +1,14 @@
 ---
 - name: add {{ restund_user }} group
-  group: name={{ restund_user }} state=present system=true
+  group: name="{{ restund_user }}" state=present system=true
   tags:
     - restund
 
 - name: add {{ restund_user }} user
   user:
-    name:   {{ restund_user }}
+    name:   "{{ restund_user }}"
     shell:  /bin/false
-    group:  {{ restund_user }}
+    group:  "{{ restund_user }}"
     system: true
     createhome: false
   tags:
