@@ -24,16 +24,6 @@
   tags:
     - restund
 
-- name: restund.conf
-  template:
-    src:   templates/restund.conf.j2
-    dest:  /etc/restund/restund.conf
-    mode:  0440
-    owner: "{{ restund_user }}"
-    group: "{{ restund_user }}"
-  tags:
-    - restund
-
 - name: install restund tls certificate
   copy:
     dest:    /etc/restund/restund.pem
@@ -42,6 +32,16 @@
     owner:   "{{ restund_user }}"
     group:   "{{ restund_user }}"
   when: restund_tls_certificate is defined
+  tags:
+    - restund
+
+- name: restund.conf
+  template:
+    src:   templates/restund.conf.j2
+    dest:  /etc/restund/restund.conf
+    mode:  0440
+    owner: "{{ restund_user }}"
+    group: "{{ restund_user }}"
   tags:
     - restund
 
