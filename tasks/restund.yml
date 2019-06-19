@@ -19,8 +19,8 @@
     path:  /etc/restund
     state: directory
     mode:  0755
-    owner: {{ restund_user }}
-    group: {{ restund_user }}
+    owner: "{{ restund_user }}"
+    group: "{{ restund_user }}"
   tags:
     - restund
 
@@ -29,8 +29,8 @@
     src:   templates/restund.conf.j2
     dest:  /etc/restund/restund.conf
     mode:  0440
-    owner: {{ restund_user }}
-    group: {{ restund_user }}
+    owner: "{{ restund_user }}"
+    group: "{{ restund_user }}"
   tags:
     - restund
 
