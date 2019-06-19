@@ -34,16 +34,16 @@
   tags:
     - restund
 
-# TODO: Ensure we install the tls certificate
-# - name: install restund tls certificate
-#   copy:
-#     dest:    /etc/restund/restund.pem
-#     content: '{{ restund_tls_certificate }}'
-#     mode:    0440
-#     owner:   restund
-#     group:   restund
-#   tags:
-#     - restund
+- name: install restund tls certificate
+  copy:
+    dest:    /etc/restund/restund.pem
+    content: "{{ restund_tls_certificate }}"
+    mode:    0440
+    owner:   "{{ restund_user }}"
+    group:   "{{ restund_user }}"
+  when: restund_tls_certificate is defined
+  tags:
+    - restund
 
 - name: install restund unit file
   template:
