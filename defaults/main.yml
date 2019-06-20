@@ -9,6 +9,7 @@ versions:
   rex:     0.2.2b1.0.6
   process_exporter: 0.4.0
 
+restund_user: restund
 restund_udp_listen_port: 3478
 restund_tcp_listen_port: 3478
 restund_tls_listen_port: 5349

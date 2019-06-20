@@ -1,14 +1,14 @@
 ---
-- name: add restund group
-  group: name=restund state=present system=true
+- name: add {{ restund_user }} group
+  group: name="{{ restund_user }}" state=present system=true
   tags:
     - restund
 
-- name: add restund user
+- name: add {{ restund_user }} user
   user:
-    name:   restund
+    name:   "{{ restund_user }}"
     shell:  /bin/false
-    group:  restund
+    group:  "{{ restund_user }}"
     system: true
     createhome: false
   tags:
@@ -19,8 +19,8 @@
     path:  /etc/restund
     state: directory
     mode:  0755
-    owner: restund
-    group: restund
+    owner: "{{ restund_user }}"
+    group: "{{ restund_user }}"
   tags:
     - restund
 
@@ -29,8 +29,8 @@
     src:   templates/restund.conf.j2
     dest:  /etc/restund/restund.conf
     mode:  0440
-    owner: restund
-    group: restund
+    owner: "{{ restund_user }}"
+    group: "{{ restund_user }}"
   tags:
     - restund
 
