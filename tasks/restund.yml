@@ -22,8 +22,8 @@
     owner: "{{ restund_user }}"
     group: "{{ restund_user }}"
   with_items:
-    - etc/restund
-    - opt/restund
+    - /etc/restund
+    - /opt/restund
   tags:
     - restund
 
