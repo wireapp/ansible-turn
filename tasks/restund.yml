@@ -14,15 +14,23 @@
   tags:
     - restund
 
-- name: create /etc/restund
+- name: create /etc/restund and /opt/restund
   file:
-    path:  /etc/restund
+    path:  "{{ item }}"
     state: directory
     mode:  0755
     owner: "{{ restund_user }}"
     group: "{{ restund_user }}"
+  with_items:
+    - etc/restund
+    - opt/restund
   tags:
     - restund
+
+- name: Download restund aci file
+  get_url:
+    url: "{{ aci_base_url }}/restund/restund-{{ versions.restund }}_linux_amd64.aci"
+    dest: "/opt/restund/restund-{{ versions.restund }}_linux_amd64.aci"
 
 - name: install restund tls certificate
   copy:

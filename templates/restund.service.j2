@@ -13,7 +13,7 @@ ExecStart=/usr/bin/rkt run \
     --dns=host \
     --hosts-entry=host \
     --volume volume-usr-local-etc-restund,kind=host,source=/etc/restund,readOnly=true \
-    {{ aci_base_url }}/restund/restund-{{ versions.restund }}_linux_amd64.aci \
+    /opt/restund/restund-{{ versions.restund }}_linux_amd64.aci \
     --user={{ restund_user }} \
     --group={{ restund_user }}
 ExecStopPost=/usr/bin/rkt gc --mark-only
