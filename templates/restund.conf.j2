@@ -6,8 +6,9 @@ syncinterval            600
 udp_listen              {{ hostvars[inventory_hostname]['ansible_' + restund_network_interface].ipv4.address }}:{{ restund_udp_listen_port }}
 udp_sockbuf_size        524288
 tcp_listen              {{ hostvars[inventory_hostname]['ansible_' + restund_network_interface].ipv4.address }}:{{ restund_tcp_listen_port }}
-# TODO: Readd TLS
-# tls_listen              {{ hostvars[inventory_hostname]['ansible_' + restund_network_interface].ipv4.address }}:{{ restund_tls_listen_port }},/usr/local/etc/restund/restund.pem
+{% if restund_tls_certificate is defined %}
+tls_listen              {{ hostvars[inventory_hostname]['ansible_' + restund_network_interface].ipv4.address }}:{{ restund_tls_listen_port }},/usr/local/etc/restund/restund.pem
+{% endif %}
 
 # modules
 module_path             /usr/local/lib/restund/modules
