@@ -13,6 +13,8 @@ Before provisioning, ensure you replace the `restund_zrest_secret` as described 
 
 Once you have a provisioned server, take note of the advertised IP address and ports (for UDP and TCP) and then add them in your wire-server installation. I.e., if your server is now running at `a.b.c.d` and the used udp/tcp port is 3478, then add that config as examplified [here](https://github.com/wireapp/wire-server-deploy/blob/master/charts/brig/values.yaml#L66-L71).
 
+You can now also connect to restund over TLS, by default over port 5349. Look at the [example playbook](examples/restund.yml). Do not forget to add that config to brig as well as described above!
+
 **Status: beta**, see [TODO](TODO.md)
 
 [![Build Status](https://travis-ci.org/wireapp/ansible-restund.svg?branch=master)](https://travis-ci.org/wireapp/ansible-restund)

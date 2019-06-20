@@ -1,5 +1,4 @@
 * [ ] Monitoring
-* [ ] Certificate generation / SSL support
 * [ ] SSH config
 * [ ] DNS ?
 * [ ] Remove sudoers and add public ssh key?
