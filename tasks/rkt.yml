@@ -61,9 +61,14 @@
     - rkt
 
 # TODO: IDEMPOTENCE Cannot make rkt trust idempotent... because it always changes the file modified time?
+# We have seen cases where we coudln't fetch https://coreos.com/dist/pubkeys/app-signing-pubkey.gpg directly,
+# so we decided to copy it to our public S3 bucket instead
 - name: trust stage1-fly
   command: |
-    rkt trust --skip-fingerprint-review --prefix "coreos.com/rkt/stage1-fly"
+    rkt trust
+      --skip-fingerprint-review
+      --prefix "coreos.com/rkt/stage1-fly"
+      https://s3-eu-west-1.amazonaws.com/public.wire.com/pubkeys/no-automatic-trust/coreos-app-signing-pubkey.asc
   tags:
     - rkt
 
