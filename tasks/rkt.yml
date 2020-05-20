@@ -60,10 +60,11 @@
   tags:
     - rkt
 
-# TODO: IDEMPOTENCE Cannot make rkt trust idempotent... because it always changes the file modified time?
 - name: trust stage1-fly
   command: |
     rkt trust --skip-fingerprint-review --prefix "coreos.com/rkt/stage1-fly"
+  args:
+    creates: /etc/rkt/trustedkeys/prefix.d/coreos.com/rkt/stage1-fly/
   tags:
     - rkt
 
