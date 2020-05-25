@@ -4,7 +4,7 @@ rkt_fly_version: 1.30.0
 node_exporter_version: v0.17.0
 
 versions:
-  restund: 0.4.13w6b1.0.23
+  restund: 0.4.14w7b1.0.47
   nginx:   1.15.12-alpine
   rex:     0.2.2b1.0.6
   process_exporter: 0.4.0
