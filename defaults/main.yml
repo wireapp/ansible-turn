@@ -18,7 +18,7 @@ restund_http_status_port: 8080
 
 restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_default_ipv4.interface }}{% else %}eth0{% endif %}"
 
-aci_base_url: https://s3-eu-west-1.amazonaws.com/public.wire.com/
+aci_base_url: https://s3-eu-west-1.amazonaws.com/public.wire.com
 rkt_s3_bucket_vhost: '{{ aci_base_url|regex_replace("^http(s?)://","") }}'
 
 current_time: "{{ ansible_date_time.epoch }}"
