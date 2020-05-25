@@ -7,10 +7,11 @@ env:
     - ROLE_NAME: ansible-restund
   matrix:
     - MOLECULE_DISTRO: ubuntu1604
+    - MOLECULE_DISTRO: ubuntu1804
 
 install:
   # Install test dependencies.
-  - pip install molecule docker
+  - pip install molecule==2.22 docker
 
 script:
   # Run tests.

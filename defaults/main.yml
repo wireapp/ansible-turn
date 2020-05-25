@@ -4,7 +4,7 @@ rkt_fly_version: 1.30.0
 node_exporter_version: v0.17.0
 
 versions:
-  restund: 0.4.13w6b1.0.23
+  restund: 0.4.14w7b1.0.47
   nginx:   1.15.12-alpine
   rex:     0.2.2b1.0.6
   process_exporter: 0.4.0
@@ -18,7 +18,7 @@ restund_http_status_port: 8080
 
 restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_default_ipv4.interface }}{% else %}eth0{% endif %}"
 
-aci_base_url: https://public-wire-com.s3-eu-west-1.amazonaws.com
+aci_base_url: https://s3-eu-west-1.amazonaws.com/public.wire.com
 rkt_s3_bucket_vhost: '{{ aci_base_url|regex_replace("^http(s?)://","") }}'
 
 current_time: "{{ ansible_date_time.epoch }}"
