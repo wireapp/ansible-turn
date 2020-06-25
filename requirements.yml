@@ -1,0 +1,7 @@
+- name: ansible-certbot
+  src: https://github.com/geerlingguy/ansible-role-certbot.git
+  version: '3.1.0'
+
+- name: nginx
+  src: https://github.com/nginxinc/ansible-role-nginx.git
+  version: 21e03b27dd50909fcbce93c51ea591ba6bafd604 # master on 2020-06-24

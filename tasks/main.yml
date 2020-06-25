@@ -1,4 +1,13 @@
 ---
+
+- name: check for conflicts between restund's own TLS and certbot/nginx TLS
+  fail:
+    msg: "Either set certbot_enabled=false or remove specifying a restund_tls_certificate - TLS certificates can only be provided one way"
+  when: restund_tls_certificate is defined and certbot_enabled
+
+- import_tasks: certbot_nginx.yml
+  when: certbot_enabled
+
 - import_tasks: setup.yml
 - import_tasks: system.yml
 - import_tasks: rkt.yml

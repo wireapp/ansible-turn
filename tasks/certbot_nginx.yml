@@ -1,0 +1,188 @@
+---
+# This file's logic can be summarized as follows:
+#
+# 0. check whether an active restund process is already using TLS
+# 1. install certbot
+# 2. check if DNS record present before attempting certificate generation
+# 3. install nginx with default configuration (which starts nginx on prt 80 and allows certbot HTTP01 challenge to succeed via nginx default webroot)
+# 4. Generate let's encrypt certificates using the default nginx server, including renewal cron jobs
+# 5. configure nginx to terminate TLS traffic and forward TCP to restund, also allow renewals on port 80 going forward
+
+# 0.
+
+- name: "check if the restund process is listening on port {{ restund_tls_listen_port }}"
+  shell: "netstat -antlp | grep LISTEN | grep {{ restund_tls_listen_port }} | grep -v nginx || true"
+  register: tls_port_use
+  changed_when: false
+
+- fail:
+    msg: "restund is listening on port {{ restund_tls_listen_port }}, which should be used by nginx since certbot_enabled = true. Please stop the restund process before continuing, or set certbot_enabled to false."
+  when: tls_port_use.stdout != ""
+
+# 1.
+
+- name: Install software-properties-common
+  apt:
+    cache_valid_time: 86400
+    pkg:
+    - software-properties-common
+
+- name: add universe repository
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  loop:
+    - "deb http://archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+    - "deb http://archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+    - "deb http://security.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+
+- name: add repository
+  apt_repository:
+    repo: ppa:certbot/certbot
+    state: present
+
+- name: Install certbot and dig
+  apt:
+    update_cache: true
+    pkg:
+    - dnsutils # for 'dig'
+    - certbot
+
+# 2.
+
+- name: gather DNS info using dig
+  shell: "dig +short {{ certbot_domain }}"
+  register: dig_result
+  when: certbot_enable_checks
+  changed_when: false
+
+- name: Fail if certbot generation cannot succeed due to missing DNS
+  fail:
+    msg: "In order to use the HTTP01 certbot challenge, {{ certbot_domain }} needs to point to (one of) this machine's IP. Please configure your DNS. Note: Set certbot_enable_checks: false to disable this check in case you are using load balancers fronting this machine. Result of DNS query: {{ dig_result }}"
+  when: certbot_enable_checks and dig_result.stdout not in ansible_all_ipv4_addresses
+
+# 3.
+
+- name: create nginx user
+  user:
+    name: nginx
+
+- name: install / configure nginx using role (but without custom configurations)
+  include_role:
+    name: nginx
+  vars:
+    nginx_debug_output: true
+    nginx_branch: stable
+
+- name: check nginx open port 80 (needed for cert generation & renewal)
+  wait_for:
+    port: 80
+    timeout: 5
+
+# 4.
+
+- name: check cert exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
+  register: cert_file
+
+- name: create certificates with cerbot/letsencrypt
+  shell: 'certbot certonly --webroot -w /var/www/html -n --agree-tos --email {{ certbot_admin_email }} -d {{ certbot_domain }}'
+  when: not cert_file.stat.exists
+
+
+# 5.
+
+- name: install / configure nginx using role
+  include_role:
+    name: nginx
+  vars:
+    nginx_debug_output: true
+    nginx_branch: stable
+    nginx_state: latest
+
+    nginx_logrotate_conf_enable: true
+
+    nginx_main_template_enable: true
+    nginx_main_template:
+      worker_connections: 1024 # higher? TODO
+      stream_enable: true
+      user: nginx
+      pid: /var/run/nginx.pid
+      worker_processes: auto
+      worker_rlimit_nofile: 65535
+      error_log:
+        location: /var/log/nginx/error.log
+        level: warn
+      http_enable: true
+      http_settings:
+        access_log_format:
+          - name: main
+            format: |-
+              '$remote_addr - $remote_user [$time_local] "$request" '
+              '$status $body_bytes_sent "$http_referer" '
+              '"$http_user_agent" "$http_x_forwarded_for"'
+        access_log_location:
+          - name: main
+            location: /var/log/nginx/access.log
+        tcp_nopush: true
+        tcp_nodelay: true
+        keepalive_timeout: 65
+        cache: false
+        rate_limit: false
+        keyval: false
+        server_tokens: "off"
+      http_global_autoindex: false
+      sub_filter: {}
+
+    # http configuration for the HTTP01 certbot challenge
+    nginx_http_template_enable: true
+    nginx_http_template:
+      default:
+        servers:
+          server1:
+            listen:
+              listen_localhost:
+                port: 80
+            sub_filter: {}
+            web_server:
+              locations:
+                default:
+                  location: "/.well-known"
+                  custom_options:
+                    - "alias /var/www/html/.well-known;"
+                  sub_filter: {}
+              http_demo_conf: false
+
+    # stream/TCP forwarding
+    nginx_stream_template_enable: true
+    nginx_stream_template:
+      restund:
+        template_file: stream/default.conf.j2
+        conf_file_name: restund.conf
+        network_streams:
+          restund:
+            listen_port: "{{ restund_tls_listen_port }}"
+            udp_enable: false
+            proxy_pass: restund
+            proxy_timeout: 3s
+            proxy_connect_timeout: 1s
+            proxy_protocol: false
+            proxy_ssl:
+              cert: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
+              key: "/etc/letsencrypt/live/{{ certbot_domain }}/privkey.pem"
+              # protocols: TLSv1.3
+            health_check_plus: false
+        upstreams:
+          upstream1:
+            name: restund
+            lb_method: least_conn
+            zone_name: backend
+            zone_size: 64k
+            sticky_cookie: false
+            servers:
+              server1:
+                address: "{{ hostvars[inventory_hostname]['ansible_' + restund_network_interface].ipv4.address }}"
+                port: "{{ restund_tcp_listen_port }}"
+                weight: 1
+                health_check: max_fails=1 fail_timeout=10s
