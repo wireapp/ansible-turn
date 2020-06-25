@@ -155,6 +155,7 @@
               http_demo_conf: false
 
     # stream/TCP forwarding
+    # see https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-tcp/
     nginx_stream_template_enable: true
     nginx_stream_template:
       restund:
@@ -162,16 +163,16 @@
         conf_file_name: restund.conf
         network_streams:
           restund:
-            listen_port: "{{ restund_tls_listen_port }}"
+            listen_port: "{{ restund_tls_listen_port }} ssl"
             udp_enable: false
             proxy_pass: restund
             proxy_timeout: 3s
             proxy_connect_timeout: 1s
             proxy_protocol: false
-            proxy_ssl:
-              cert: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
-              key: "/etc/letsencrypt/live/{{ certbot_domain }}/privkey.pem"
-              # protocols: TLSv1.3
+            # TODO: add protocols & other recommendations?
+            custom_options:
+              - "ssl_certificate /etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem;"
+              - "ssl_certificate_key /etc/letsencrypt/live/{{ certbot_domain }}/privkey.pem;"
             health_check_plus: false
         upstreams:
           upstream1:
