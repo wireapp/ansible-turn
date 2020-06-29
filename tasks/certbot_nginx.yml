@@ -2,8 +2,8 @@
 # This file's logic can be summarized as follows:
 #
 # 0. check whether an active restund process is already using TLS
-# 1. install certbot
-# 2. check if DNS record present before attempting certificate generation
+# 1. check if DNS record present before attempting certificate generation
+# 2. install certbot
 # 3. install nginx with default configuration (which starts nginx on prt 80 and allows certbot HTTP01 challenge to succeed via nginx default webroot)
 # 4. Generate let's encrypt certificates using the default nginx server, including renewal cron jobs
 # 5. configure nginx to terminate TLS traffic and forward TCP to restund, also allow renewals on port 80 going forward
@@ -20,6 +20,25 @@
   when: tls_port_use.stdout != ""
 
 # 1.
+
+- name: Ensure dig is installed
+  apt:
+    cache_valid_time: 86400
+    pkg:
+      - dnsutils # for 'dig'
+
+- name: gather DNS info using dig
+  shell: "dig +retries=3 +short {{ certbot_domain }}"
+  register: dig_result
+  when: certbot_enable_checks
+  changed_when: false
+
+- name: Fail if certbot generation cannot succeed due to missing DNS
+  fail:
+    msg: "In order to use the HTTP01 certbot challenge, {{ certbot_domain }} needs to point to (one of) this machine's IP. Please configure your DNS. Note: Set certbot_enable_checks: false to disable this check in case you are using load balancers fronting this machine. Result of DNS query: {{ dig_result }}"
+  when: certbot_enable_checks and dig_result.stdout not in ansible_all_ipv4_addresses
+
+# 2.
 
 - name: Install software-properties-common
   apt:
@@ -41,25 +60,11 @@
     repo: ppa:certbot/certbot
     state: present
 
-- name: Install certbot and dig
+- name: Install certbot
   apt:
     update_cache: true
     pkg:
-    - dnsutils # for 'dig'
     - certbot
-
-# 2.
-
-- name: gather DNS info using dig
-  shell: "dig +short {{ certbot_domain }}"
-  register: dig_result
-  when: certbot_enable_checks
-  changed_when: false
-
-- name: Fail if certbot generation cannot succeed due to missing DNS
-  fail:
-    msg: "In order to use the HTTP01 certbot challenge, {{ certbot_domain }} needs to point to (one of) this machine's IP. Please configure your DNS. Note: Set certbot_enable_checks: false to disable this check in case you are using load balancers fronting this machine. Result of DNS query: {{ dig_result }}"
-  when: certbot_enable_checks and dig_result.stdout not in ansible_all_ipv4_addresses
 
 # 3.
 
@@ -86,7 +91,7 @@
     path: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
   register: cert_file
 
-- name: create certificates with cerbot/letsencrypt
+- name: create certificates with cerbot/letsencrypt (this also installs a renewal cron job)
   shell: 'certbot certonly --webroot -w /var/www/html -n --agree-tos --email {{ certbot_admin_email }} -d {{ certbot_domain }}'
   when: not cert_file.stat.exists
 
