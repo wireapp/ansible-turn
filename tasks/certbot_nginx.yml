@@ -72,12 +72,26 @@
   user:
     name: nginx
 
+- name: create override config dir
+  file:
+    path: /etc/systemd/system/nginx.service.d
+    state: directory
+
+- name: create higher limit on allowed file descriptors for nginx
+  template:
+    src: nginx.service.override.j2
+    dest: /etc/systemd/system/nginx.service.d/override.conf
+
+- name: check which packages are installed
+  package_facts:
+
 - name: install / configure nginx using role (but without custom configurations)
   include_role:
     name: nginx
   vars:
     nginx_debug_output: true
     nginx_branch: stable
+  when: not 'nginx' in ansible_facts.packages
 
 - name: check nginx open port 80 (needed for cert generation & renewal)
   wait_for:
@@ -110,12 +124,12 @@
 
     nginx_main_template_enable: true
     nginx_main_template:
-      worker_connections: 1024 # higher? TODO
+      worker_connections: "{{ nginx_worker_connections }}"
       stream_enable: true
       user: nginx
       pid: /var/run/nginx.pid
       worker_processes: auto
-      worker_rlimit_nofile: 65535
+      worker_rlimit_nofile: "{{ nginx_rlimit_nofile }}"
       error_log:
         location: /var/log/nginx/error.log
         level: warn

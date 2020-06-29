@@ -34,3 +34,5 @@ certbot_admin_email: # e.g. example@example.com
 certbot_domain: # e.g. restund01.example.com
 # set to false if DNS records point indirectly to this machine (e.g. when using load balancers)
 certbot_enable_checks: true
+nginx_worker_connections: 65536
+nginx_rlimit_nofile: "{{ nginx_worker_connections * 2 }}"
