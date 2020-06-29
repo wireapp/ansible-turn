@@ -1,0 +1,18 @@
+upstream restund {
+    least_conn;
+    zone backend 64k;
+    server {{ hostvars[inventory_hostname]['ansible_' + restund_network_interface].ipv4.address }}:{{ restund_tcp_listen_port }} weight=1 max_fails=1 fail_timeout=10s;
+}
+
+# see also https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-tcp/
+server {
+    listen {{ restund_tls_listen_port }} ssl;
+    proxy_pass restund;
+    proxy_timeout 3s;
+    proxy_connect_timeout 1s;
+    proxy_protocol off;
+    ssl_certificate /etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ certbot_domain }}/privkey.pem;
+
+    # TODO: which other settings (ciphers protocols etc) make sense here in the restund usecase (where we don't rely on the transport encryption of TLS, since the content is already end-to-end encrypted, and most calls go through regular UDP/TCP anyway - the TLS is used in networking setups where UDP and plain TCP is blocked, but TLS is allowed, i.e. a fallback mode only)
+}

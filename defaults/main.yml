@@ -36,3 +36,4 @@ certbot_domain: # e.g. restund01.example.com
 certbot_enable_checks: true
 nginx_worker_connections: 65536
 nginx_rlimit_nofile: "{{ nginx_worker_connections * 2 }}"
+nginx_localhost_config_dir: /tmp/conf

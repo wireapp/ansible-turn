@@ -112,6 +112,28 @@
 
 # 5.
 
+- name: create dirs (locally under tmp, for templating)
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ nginx_localhost_config_dir }}"
+    - "{{ nginx_localhost_config_dir }}/http"
+    - "{{ nginx_localhost_config_dir }}/stream"
+  delegate_to: localhost
+  become: false
+
+- name: template nginx config files (locally)
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: nginx.conf.j2, dest: "{{ nginx_localhost_config_dir }}/nginx.conf" }
+    - { src: nginx-default.conf.j2, dest: "{{ nginx_localhost_config_dir }}/http/default.conf" }
+    - { src: nginx-stream.conf.j2, dest: "{{ nginx_localhost_config_dir }}/stream/restund.conf" }
+  delegate_to: localhost
+  become: false
+
 - name: install / configure nginx using role
   include_role:
     name: nginx
@@ -119,90 +141,12 @@
     nginx_debug_output: true
     nginx_branch: stable
     nginx_state: latest
-
     nginx_logrotate_conf_enable: true
-
-    nginx_main_template_enable: true
-    nginx_main_template:
-      worker_connections: "{{ nginx_worker_connections }}"
-      stream_enable: true
-      user: nginx
-      pid: /var/run/nginx.pid
-      worker_processes: auto
-      worker_rlimit_nofile: "{{ nginx_rlimit_nofile }}"
-      error_log:
-        location: /var/log/nginx/error.log
-        level: warn
-      http_enable: true
-      http_settings:
-        access_log_format:
-          - name: main
-            format: |-
-              '$remote_addr - $remote_user [$time_local] "$request" '
-              '$status $body_bytes_sent "$http_referer" '
-              '"$http_user_agent" "$http_x_forwarded_for"'
-        access_log_location:
-          - name: main
-            location: /var/log/nginx/access.log
-        tcp_nopush: true
-        tcp_nodelay: true
-        keepalive_timeout: 65
-        cache: false
-        rate_limit: false
-        keyval: false
-        server_tokens: "off"
-      http_global_autoindex: false
-      sub_filter: {}
-
-    # http configuration for the HTTP01 certbot challenge
-    nginx_http_template_enable: true
-    nginx_http_template:
-      default:
-        servers:
-          server1:
-            listen:
-              listen_localhost:
-                port: 80
-            sub_filter: {}
-            web_server:
-              locations:
-                default:
-                  location: "/.well-known"
-                  custom_options:
-                    - "alias /var/www/html/.well-known;"
-                  sub_filter: {}
-              http_demo_conf: false
-
-    # stream/TCP forwarding
-    # see https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-tcp/
-    nginx_stream_template_enable: true
-    nginx_stream_template:
-      restund:
-        template_file: stream/default.conf.j2
-        conf_file_name: restund.conf
-        network_streams:
-          restund:
-            listen_port: "{{ restund_tls_listen_port }} ssl"
-            udp_enable: false
-            proxy_pass: restund
-            proxy_timeout: 3s
-            proxy_connect_timeout: 1s
-            proxy_protocol: false
-            # TODO: add protocols & other recommendations?
-            custom_options:
-              - "ssl_certificate /etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem;"
-              - "ssl_certificate_key /etc/letsencrypt/live/{{ certbot_domain }}/privkey.pem;"
-            health_check_plus: false
-        upstreams:
-          upstream1:
-            name: restund
-            lb_method: least_conn
-            zone_name: backend
-            zone_size: 64k
-            sticky_cookie: false
-            servers:
-              server1:
-                address: "{{ hostvars[inventory_hostname]['ansible_' + restund_network_interface].ipv4.address }}"
-                port: "{{ restund_tcp_listen_port }}"
-                weight: 1
-                health_check: max_fails=1 fail_timeout=10s
+    # upload files templated in previous task
+    nginx_main_upload_enable: true
+    nginx_main_upload_src: "{{ nginx_localhost_config_dir }}/nginx.conf"
+    nginx_http_upload_enable: true
+    nginx_http_upload_src: "{{ nginx_localhost_config_dir }}/http/*.conf"
+    nginx_stream_upload_enable: true
+    nginx_stream_upload_src: "{{ nginx_localhost_config_dir }}/stream/*.conf"
+    nginx_stream_upload_dest: "/etc/nginx/conf.d/stream/"
