@@ -1,6 +1,6 @@
-- name: ansible-certbot
-  src: https://github.com/geerlingguy/ansible-role-certbot.git
-  version: '3.1.0'
+- name: restund
+  src: git+https://github.com/wireapp/ansible-restund.git
+  version: master # you can specify one of the tags from https://github.com/wireapp/ansible-restund/releases, e.g. v0.1.4
 
 - name: nginx
   src: https://github.com/nginxinc/ansible-role-nginx.git
