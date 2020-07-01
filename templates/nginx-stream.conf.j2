@@ -1,3 +1,5 @@
+# This 'stream' configuration file terminates TLS and forwards the plain TCP stream to the restund process.
+
 upstream restund {
     least_conn;
     zone backend 64k;
@@ -14,5 +16,15 @@ server {
     ssl_certificate /etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/{{ certbot_domain }}/privkey.pem;
 
-    # TODO: which other settings (ciphers protocols etc) make sense here in the restund usecase (where we don't rely on the transport encryption of TLS, since the content is already end-to-end encrypted, and most calls go through regular UDP/TCP anyway - the TLS is used in networking setups where UDP and plain TCP is blocked, but TLS is allowed, i.e. a fallback mode only)
+    # This currently defaults to whatever the nginx default ciphers are.
+    # Looking at: http://nginx.org/en/docs/stream/ngx_stream_ssl_module.html
+    # Default: ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    # Default: ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Context: The restund usecase is one of allowing calls to work in
+    # restricted networking setups, where UDP traffic is blocked and plain TCP
+    # traffic may also be blocked. We don't rely on the transport encryption of
+    # TLS, since the content is already end-to-end encrypted, and most calls
+    # should go through UDP or plain TCP anyway.
+    # Using TLS is a fallback mode only.
 }
