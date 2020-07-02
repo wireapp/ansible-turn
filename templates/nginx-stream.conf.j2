@@ -1,0 +1,36 @@
+# This 'stream' configuration file terminates TLS and forwards the plain TCP stream to the restund process.
+
+upstream restund {
+    least_conn;
+    zone backend 64k;
+    server {{ hostvars[inventory_hostname]['ansible_' + restund_network_interface].ipv4.address }}:{{ restund_tcp_listen_port }} weight=1 max_fails=1 fail_timeout=10s;
+}
+
+# see also https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-tcp/
+server {
+    listen {{ restund_tls_listen_port }} ssl;
+    proxy_pass restund;
+    proxy_timeout 3s;
+    proxy_connect_timeout 1s;
+    proxy_protocol off;
+    ssl_certificate /etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ certbot_domain }}/privkey.pem;
+
+    # intermediate configuration as per https://ssl-config.mozilla.org/#server=nginx
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
+    ssl_session_tickets off;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # NOTE TLS context:
+    # The restund usecase is one of allowing calls to work in
+    # restricted networking setups, where UDP traffic is blocked and plain TCP
+    # traffic may also be blocked. We don't rely on the transport encryption of
+    # TLS, since the content is already end-to-end encrypted, and most calls
+    # should go through UDP or plain TCP anyway.
+    # Using TLS is a fallback mode only.
+    # Improving TLS configuration/ciphers is thus likely unnecessary
+}

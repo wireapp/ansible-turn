@@ -1,0 +1,177 @@
+---
+# This file's logic can be summarized as follows:
+#
+# 0. check whether an active restund process is already using TLS
+# 1. check if DNS record present before attempting certificate generation
+# 2. install certbot
+# 3. install nginx with default configuration (which starts nginx on prt 80 and allows certbot HTTP01 challenge to succeed via nginx default webroot)
+# 4. Generate let's encrypt certificates using the default nginx server, including renewal cron jobs
+# 5. configure nginx to terminate TLS traffic and forward TCP to restund, also allow renewals on port 80 going forward
+
+# 0.
+
+- name: "check if the restund process is listening on port {{ restund_tls_listen_port }}"
+  shell: "netstat -antlp | grep LISTEN | grep {{ restund_tls_listen_port }} | grep -v nginx || true"
+  register: tls_port_use
+  changed_when: false
+
+- fail:
+    msg: "restund is listening on port {{ restund_tls_listen_port }}, which should be used by nginx since certbot_enabled = true. Please stop the restund process before continuing, or set certbot_enabled to false."
+  when: tls_port_use.stdout != ""
+
+# 1.
+
+- name: Ensure dig is installed
+  apt:
+    cache_valid_time: 86400
+    pkg:
+      - dnsutils # for 'dig'
+
+- name: gather DNS info using dig
+  shell: "dig +retries=3 +short {{ certbot_domain }}"
+  register: dig_result
+  when: certbot_enable_checks
+  changed_when: false
+
+- name: Fail if certbot generation cannot succeed due to missing DNS
+  fail:
+    msg: "In order to use the HTTP01 certbot challenge, {{ certbot_domain }} needs to point to (one of) this machine's IP. Please configure your DNS. Note: Set certbot_enable_checks: false to disable this check in case you are using load balancers fronting this machine. Result of DNS query: {{ dig_result }}"
+  when: certbot_enable_checks and dig_result.stdout not in ansible_all_ipv4_addresses
+
+# 2.
+
+- name: Install software-properties-common
+  apt:
+    cache_valid_time: 86400
+    pkg:
+    - software-properties-common
+
+- name: add universe repository
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  loop:
+    - "deb http://archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+    - "deb http://archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+    - "deb http://security.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+
+- name: add repository
+  apt_repository:
+    repo: ppa:certbot/certbot
+    state: present
+
+- name: Install certbot
+  apt:
+    update_cache: true
+    pkg:
+    - certbot
+
+# 3.
+
+- name: create nginx user
+  user:
+    name: nginx
+
+- name: create override config dir
+  file:
+    path: /etc/systemd/system/nginx.service.d
+    state: directory
+
+- name: create higher limit on allowed file descriptors for nginx
+  template:
+    src: nginx.service.override.j2
+    dest: /etc/systemd/system/nginx.service.d/override.conf
+
+- name: check which packages are installed
+  package_facts:
+
+- name: install / configure nginx using role (but without custom configurations)
+  include_role:
+    name: nginx
+  vars:
+    nginx_debug_output: true
+    nginx_branch: stable
+  when: not 'nginx' in ansible_facts.packages
+
+- name: check nginx open port 80 (needed for cert generation & renewal)
+  wait_for:
+    port: 80
+    timeout: 5
+
+# 4.
+
+- name: check cert exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
+  register: cert_file
+
+- name: create certificates with cerbot/letsencrypt (this also installs a renewal cron job)
+  shell: 'certbot certonly --webroot -w /var/www/html -n --agree-tos --email {{ certbot_admin_email }} -d {{ certbot_domain }}'
+  when: not cert_file.stat.exists
+
+
+# 5.
+
+- name: create dirs (locally under tmp, for templating)
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ nginx_localhost_config_dir }}"
+    - "{{ nginx_localhost_config_dir }}/http"
+    - "{{ nginx_localhost_config_dir }}/stream"
+  delegate_to: localhost
+  become: false
+
+- name: template nginx config files (locally)
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: nginx.conf.j2, dest: "{{ nginx_localhost_config_dir }}/nginx.conf" }
+    - { src: nginx-default.conf.j2, dest: "{{ nginx_localhost_config_dir }}/http/default.conf" }
+    - { src: nginx-stream.conf.j2, dest: "{{ nginx_localhost_config_dir }}/stream/restund.conf" }
+  delegate_to: localhost
+  become: false
+
+# FUTUREWORK: Think whether it might make more sense to re-implement these tasks, rather than use the role.
+# Pro keep the role: maybe easier maintenance going forward,
+#   no need for copy-paste of 18 tasks and some templates,
+#   no need to write molecule tests for those tasks
+# Pro remove the dependency: one less dependency.
+#
+# The following role runs the following tasks on ubuntu 18:
+# TASK [nginx : (Install: Debian/Ubuntu) Install Required Debian and Ubuntu Dependencies] *****
+# TASK [nginx : (Install: APT OSs) Set Default APT NGINX Signing Key URL] *********************
+# TASK [nginx : (Install: APT OSs) Set APT NGINX Signing Key URL] *****************************
+# TASK [nginx : (Install: APT OSs) Add APT NGINX Signing Key] *********************************
+# TASK [nginx : (Install: Debian/Ubuntu) Set Default APT NGINX Repository] ********************
+# TASK [nginx : (Install: Debian/Ubuntu) Set APT NGINX Repository] ****************************
+# TASK [nginx : (Install: Debian/Ubuntu) Add NGINX Repository] ********************************
+# TASK [nginx : (Install: Debian/Ubuntu) Install NGINX] ***************************************
+# TASK [nginx : (Setup: All NGINX) Ensure NGINX Main Directory Exists] ************************
+# TASK [nginx : (Setup: All NGINX) Upload NGINX Main Configuration File] **********************
+# TASK [nginx : (Setup: All NGINX) Ensure NGINX HTTP Directory Exists] ************************
+# TASK [nginx : (Setup: All NGINX) Upload NGINX HTTP Configuration Files] *********************
+# TASK [nginx : (Setup: All NGINX) Ensure NGINX Stream Directory Exists] **********************
+# TASK [nginx : (Setup: All NGINX) Upload NGINX Stream Configuration Files] *******************
+# TASK [nginx : (Setup: All OSs) Register NGINX configuration] ********************************
+# TASK [nginx : (Config: Ubuntu/Debian) Install Logrotate] ************************************
+# TASK [nginx : (Config: All OSs) Create Logrotate Config] ************************************
+# TASK [nginx : (Config: All OSs) Run Logrotate] **********************************************
+- name: install / configure nginx using role
+  include_role:
+    name: nginx
+  vars:
+    nginx_debug_output: true
+    nginx_branch: stable
+    nginx_state: latest
+    nginx_logrotate_conf_enable: true
+    # upload files templated in previous task
+    nginx_main_upload_enable: true
+    nginx_main_upload_src: "{{ nginx_localhost_config_dir }}/nginx.conf"
+    nginx_http_upload_enable: true
+    nginx_http_upload_src: "{{ nginx_localhost_config_dir }}/http/*.conf"
+    nginx_stream_upload_enable: true
+    nginx_stream_upload_src: "{{ nginx_localhost_config_dir }}/stream/*.conf"
+    nginx_stream_upload_dest: "/etc/nginx/conf.d/stream/"

@@ -1,0 +1,7 @@
+- name: restund
+  src: git+https://github.com/wireapp/ansible-restund.git
+  version: master # you can specify one of the tags from https://github.com/wireapp/ansible-restund/releases, e.g. v0.1.4
+
+- name: nginx
+  src: https://github.com/nginxinc/ansible-role-nginx.git
+  version: 21e03b27dd50909fcbce93c51ea591ba6bafd604 # master on 2020-06-24
