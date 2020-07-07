@@ -21,14 +21,6 @@ restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_d
 aci_base_url: https://s3-eu-west-1.amazonaws.com/public.wire.com
 rkt_s3_bucket_vhost: '{{ aci_base_url|regex_replace("^http(s?)://","") }}'
 
-current_time: "{{ ansible_date_time.epoch }}"
-
-two_weeks_in_seconds: "{{ 14 * 24 * 60 * 60 }}"
-two_weeks_from_now: "{{ current_time|int + two_weeks_in_seconds|int }}"
-
-four_weeks_in_seconds: "{{ 28 * 24 * 60 * 60 }}"
-four_weeks_from_now: "{{ current_time|int + four_weeks_in_seconds|int }}"
-
 certbot_enabled: false # if enabled, set certbot_admin_email and certbot_domain
 certbot_admin_email: # e.g. example@example.com
 certbot_domain: # e.g. restund01.example.com
