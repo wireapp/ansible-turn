@@ -130,6 +130,7 @@
   with_items:
     - { src: nginx.conf.j2, dest: "{{ nginx_localhost_config_dir }}/nginx.conf" }
     - { src: nginx-default.conf.j2, dest: "{{ nginx_localhost_config_dir }}/http/default.conf" }
+    - { src: nginx-metrics.conf.j2, dest: "{{ nginx_localhost_config_dir }}/http/metrics.conf" }
     - { src: nginx-stream.conf.j2, dest: "{{ nginx_localhost_config_dir }}/stream/restund.conf" }
   delegate_to: localhost
   become: false

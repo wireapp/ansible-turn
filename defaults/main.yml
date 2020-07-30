@@ -15,6 +15,7 @@ restund_tcp_listen_port: 3478
 restund_tls_listen_port: 5349
 restund_udp_status_port: 33000
 restund_http_status_port: 8080
+restund_metrics_listen_port: 8443
 
 restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_default_ipv4.interface }}{% else %}eth0{% endif %}"
 
@@ -29,3 +30,8 @@ certbot_enable_checks: true
 nginx_worker_connections: 65536
 nginx_rlimit_nofile: "{{ nginx_worker_connections * 2 }}"
 nginx_localhost_config_dir: /tmp/conf
+
+restund_metrics_enabled: true
+# FUTUREWORK: currently you need to provide your own client certificate CA file
+# before using this role if setting this to true.
+restund_metrics_clientcertificates_enabled: false
