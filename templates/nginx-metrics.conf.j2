@@ -8,7 +8,7 @@ server {
 
     # intermediate configuration as per https://ssl-config.mozilla.org/#server=nginx
     ssl_session_timeout 1d;
-    ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
+    ssl_session_cache shared:MetricsSSL:10m;  # about 40000 sessions
     ssl_session_tickets off;
 
     ssl_protocols TLSv1.2 TLSv1.3;
