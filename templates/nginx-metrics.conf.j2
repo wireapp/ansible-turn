@@ -1,4 +1,4 @@
-{% if restund_enable_monitoring %}
+{% if restund_metrics_enabled %}
 server {
     listen {{ restund_metrics_listen_port }} ssl;
     server_name {{ certbot_domain }};
@@ -15,7 +15,7 @@ server {
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
 
-    {% if restund_enable_monitoring_client_certificates %}
+    {% if restund_metrics_client_certificates_enabled %}
     ssl_client_certificate /etc/nginx/ssl/certs/ca.crt;
     ssl_verify_client      on;
     {% endif %}
