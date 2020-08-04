@@ -31,7 +31,14 @@ nginx_worker_connections: 65536
 nginx_rlimit_nofile: "{{ nginx_worker_connections * 2 }}"
 nginx_localhost_config_dir: /tmp/conf
 
-restund_metrics_enabled: true
-# FUTUREWORK: currently you need to provide your own client certificate CA file
+# NOTE: currently you need to install your own exporters,
+# setting this to true will only add an nginx block forwarding traffic
+# to local exporters if they exist (but this role currently doesn't install any).
+# FUTUREWORK: install exporters as part of this role
+restund_metrics_enabled: false
+
+# NOTE: currently you need to provide your own client certificate CA file
 # before using this role if setting this to true.
-restund_metrics_clientcertificates_enabled: false
+# FUTUREWORK: ease the process of using client certificates,
+# and only enable the client cert block if a CA cert is present.
+restund_metrics_client_certificates_enabled: false
