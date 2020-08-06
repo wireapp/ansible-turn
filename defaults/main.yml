@@ -30,7 +30,7 @@ certbot_enable_checks: true
 certbot_webroot_directory: /usr/share/nginx/html
 nginx_worker_connections: 65536
 nginx_rlimit_nofile: "{{ nginx_worker_connections * 2 }}"
-nginx_localhost_config_dir: /tmp/conf
+nginx_localhost_config_dir: "/tmp/conf/{{ certbot_domain }}"
 
 # NOTE: currently you need to install your own exporters,
 # setting this to true will only add an nginx block forwarding traffic
