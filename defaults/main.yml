@@ -15,6 +15,7 @@ restund_tcp_listen_port: 3478
 restund_tls_listen_port: 5349
 restund_udp_status_port: 33000
 restund_http_status_port: 8080
+restund_metrics_listen_port: 8443
 
 restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_default_ipv4.interface }}{% else %}eth0{% endif %}"
 
@@ -26,6 +27,19 @@ certbot_admin_email: # e.g. example@example.com
 certbot_domain: # e.g. restund01.example.com
 # set to false if DNS records point indirectly to this machine (e.g. when using load balancers)
 certbot_enable_checks: true
+certbot_webroot_directory: /usr/share/nginx/html
 nginx_worker_connections: 65536
 nginx_rlimit_nofile: "{{ nginx_worker_connections * 2 }}"
-nginx_localhost_config_dir: /tmp/conf
+nginx_localhost_config_dir: "/tmp/conf/{{ certbot_domain }}"
+
+# NOTE: currently you need to install your own exporters,
+# setting this to true will only add an nginx block forwarding traffic
+# to local exporters if they exist (but this role currently doesn't install any).
+# FUTUREWORK: install exporters as part of this role
+restund_metrics_enabled: false
+
+# NOTE: currently you need to provide your own client certificate CA file
+# before using this role if setting this to true.
+# FUTUREWORK: ease the process of using client certificates,
+# and only enable the client cert block if a CA cert is present.
+restund_metrics_client_certificates_enabled: false

@@ -3,6 +3,6 @@ server {
     server_name localhost;
 
     location /.well-known {
-        alias /var/www/html/.well-known;
+        alias {{ certbot_webroot_directory }}/.well-known;
     }
 }

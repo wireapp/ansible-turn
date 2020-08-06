@@ -82,6 +82,11 @@
     src: nginx.service.override.j2
     dest: /etc/systemd/system/nginx.service.d/override.conf
 
+- name: create dir for .well-known file
+  file:
+    path: "{{ certbot_webroot_directory }}"
+    state: directory
+
 - name: check which packages are installed
   package_facts:
 
@@ -106,7 +111,7 @@
   register: cert_file
 
 - name: create certificates with cerbot/letsencrypt (this also installs a renewal cron job)
-  shell: 'certbot certonly --webroot -w /var/www/html -n --agree-tos --email {{ certbot_admin_email }} -d {{ certbot_domain }}'
+  shell: 'certbot certonly --webroot --webroot-path {{ certbot_webroot_directory }} -n --agree-tos --email {{ certbot_admin_email }} -d {{ certbot_domain }}'
   when: not cert_file.stat.exists
 
 
@@ -130,6 +135,7 @@
   with_items:
     - { src: nginx.conf.j2, dest: "{{ nginx_localhost_config_dir }}/nginx.conf" }
     - { src: nginx-default.conf.j2, dest: "{{ nginx_localhost_config_dir }}/http/default.conf" }
+    - { src: nginx-metrics.conf.j2, dest: "{{ nginx_localhost_config_dir }}/http/metrics.conf" }
     - { src: nginx-stream.conf.j2, dest: "{{ nginx_localhost_config_dir }}/stream/restund.conf" }
   delegate_to: localhost
   become: false
