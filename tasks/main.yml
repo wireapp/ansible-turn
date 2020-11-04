@@ -10,5 +10,4 @@
 
 - import_tasks: setup.yml
 - import_tasks: system.yml
-- import_tasks: rkt.yml
 - import_tasks: restund.yml
