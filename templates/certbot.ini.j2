@@ -1,0 +1,6 @@
+# Because we are using logrotate for greater flexibility, disable the
+# internal certbot logrotation.
+max-log-backups = 0
+
+[renewalparams]
+post-hook = systemctl reload nginx
