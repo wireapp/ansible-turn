@@ -2,15 +2,21 @@
 - name: Ensure docker key is present
   apt_key:
     url: "{{ docker_ubuntu_repo_gpgkey }}"
+  tags:
+    - docker
 
 - name: Ensure docker repository is present
   apt_repository:
     repo:
       "deb {{ docker_ubuntu_repo_base_url }} {{ ansible_distribution_release }} stable"
     update_cache: true
+  tags:
+    - docker
 
 - name: install docker
   apt:
     name:
       - docker-ce
     state: latest
+  tags:
+    - docker
