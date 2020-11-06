@@ -110,6 +110,11 @@
     path: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
   register: cert_file
 
+- name: configure certbot
+  template:
+    src: 'certbot.ini.j2'
+    dest: "/etc/letsencrypt/cli.ini"
+
 - name: create certificates with cerbot/letsencrypt (this also installs a renewal cron job)
   shell: 'certbot certonly --webroot --webroot-path {{ certbot_webroot_directory }} -n --agree-tos --email {{ certbot_admin_email }} -d {{ certbot_domain }}'
   when: not cert_file.stat.exists
