@@ -1,6 +1,7 @@
 ---
 restund_version: 0.4.14w7b1.0.47
 restund_user: restund # This also create the same group
+restund_uid: 997
 restund_udp_listen_port: 80
 restund_tcp_listen_port: 80
 restund_tls_listen_port: 443

@@ -15,7 +15,7 @@ ExecStart=/usr/bin/docker run \
   --name restund \
   --cap-add=NET_BIND_SERVICE \
   --sysctl net.ipv4.ip_unprivileged_port_start=0 \
-  --user {{ restund_user }}:{{ restund_user }} \
+  --user {{ restund_uid }}:{{ restund_user }} \
   --volume /etc/restund:/usr/local/etc/restund:ro \
   quay.io/wire/restund:{{ restund_version }}
 
