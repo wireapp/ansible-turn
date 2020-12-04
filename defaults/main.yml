@@ -4,6 +4,7 @@ restund_user: restund # This also create the same group
 restund_udp_listen_port: 3478
 restund_tcp_listen_port: 3478
 restund_tls_listen_port: 5349
+restund_uid: 997
 restund_udp_status_port: 33000
 restund_http_status_port: 8080
 restund_metrics_listen_port: 8443

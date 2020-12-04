@@ -12,6 +12,7 @@
   user:
     name: "{{ restund_user }}"
     shell: "/bin/false"
+    uid: "{{ restund_uid }}"
     group: "{{ restund_user }}"
     system: true
     createhome: false
