@@ -35,7 +35,6 @@ restund_metrics_enabled: false
 # FUTUREWORK: ease the process of using client certificates,
 # and only enable the client cert block if a CA cert is present.
 restund_metrics_client_certificates_enabled: false
-restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_default_ipv4.interface }}{% else %}eth0{% endif %}"
 
 docker_ubuntu_repo_base_url: "https://download.docker.com/linux/ubuntu"
 docker_ubuntu_repo_gpgkey: 'https://download.docker.com/linux/ubuntu/gpg'
