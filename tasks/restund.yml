@@ -4,14 +4,15 @@
     name: "{{ restund_user }}"
     state: present
     system: true
+  when: restund_user != 'root'
   tags:
     - restund
-  when: restund_user != 'root'
 
 - name: add {{ restund_user }} user
   user:
     name: "{{ restund_user }}"
     shell: "/bin/false"
+    uid: "{{ restund_uid }}"
     group: "{{ restund_user }}"
     system: true
     createhome: false
@@ -19,23 +20,15 @@
   tags:
     - restund
 
-- name: create /etc/restund and /opt/restund
+- name: create /etc/restund
   file:
-    path:  "{{ item }}"
+    path: /etc/restund
     state: directory
     mode:  0755
     owner: "{{ restund_user }}"
     group: "{{ restund_user }}"
-  with_items:
-    - /etc/restund
-    - /opt/restund
   tags:
     - restund
-
-- name: Download restund aci file
-  get_url:
-    url: "{{ aci_base_url }}/restund/restund-{{ versions.restund }}_linux_amd64.aci"
-    dest: "/opt/restund/restund-{{ versions.restund }}_linux_amd64.aci"
 
 - name: install restund tls certificate
   copy:
@@ -61,14 +54,13 @@
 - name: install restund unit file
   template:
     src:   templates/restund.service.j2
-    dest:  /lib/systemd/system/restund.service
+    dest:  /etc/systemd/system/restund.service
     mode:  0644
     owner: root
     group: root
   notify:
     # - restart restund # NOTE: Restarting restund should be done _manually_
-    - rkt gc
-    - rkt image gc
+    - systemctl daemon-reload
   tags:
     - restund
 
