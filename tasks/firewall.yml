@@ -1,0 +1,175 @@
+- name: 'Allowing ingress from provided private IPv4 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv4'
+    chain: INPUT
+    jump: ACCEPT
+    source: "{{ item }}"
+  loop: "{{ restund_egress_allowed_private_ipv4_network_ranges }}"
+
+- name: 'Allowing ingress from provided private IPv6 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv6'
+    chain: INPUT
+    jump: ACCEPT
+    source: "{{ item }}"
+  loop: "{{ restund_egress_allowed_private_ipv6_network_ranges }}"
+
+- name: 'Allowing egress to provided private IPv4 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv4'
+    chain: OUTPUT
+    jump: ACCEPT
+    destination: "{{ item }}"
+  loop: "{{ restund_allowed_private_ipv4_network_ranges }}"
+
+- name: 'Allowing egress to provided private IPv6 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv6'
+    chain: OUTPUT
+    jump: ACCEPT
+    destination: "{{ item }}"
+  loop: "{{ restund_allowed_private_ipv6_network_ranges }}"
+
+
+- name: 'Allowing SSH ingress from pe-defined private IPv4 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv4'
+    chain: INPUT
+    jump: ACCEPT
+    source: "{{ item }}"
+    to_ports: '22'
+  loop: "{{ restund_blocked_ipv4_network_ranges }}"
+
+- name: 'Allowing SSH ingress from pe-defined private IPv6 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv6'
+    chain: INPUT
+    jump: ACCEPT
+    source: "{{ item }}"
+    to_ports: '22'
+  loop: "{{ restund_blocked_ipv6_network_ranges }}"
+
+# NOTE: the exclamation mark (!) in front of source/destination item
+-
+- name: 'Allowing SSH ingress from pe-defined public IPv4 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv4'
+    chain: INPUT
+    jump: ACCEPT
+    source: "! {{ item }}"
+    to_ports: '22'
+  loop: "{{ restund_blocked_ipv4_network_ranges }}"
+
+- name: 'Allowing SSH ingress from pe-defined public IPv6 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv6'
+    chain: INPUT
+    jump: ACCEPT
+    source: "! {{ item }}"
+    to_ports: '22'
+  loop: "{{ restund_blocked_ipv6_network_ranges }}"
+
+
+- name: 'Blocking ingress from pe-defined private IPv4 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv4'
+    chain: INPUT
+    jump: DROP
+    source: "{{ item }}"
+  loop: "{{ restund_blocked_ipv4_network_ranges }}"
+
+- name: 'Blocking ingress from pe-defined private IPv6 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv6'
+    chain: INPUT
+    jump: DROP
+    source: "{{ item }}"
+  loop: "{{ restund_blocked_ipv6_network_ranges }}"
+
+- name: 'Blocking egress to pe-defined private IPv4 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv4'
+    chain: OUTPUT
+    jump: DROP
+    destination: "{{ item }}"
+  loop: "{{ restund_blocked_ipv4_network_ranges }}"
+
+- name: 'Blocking egress to pe-defined private IPv6 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv6'
+    chain: OUTPUT
+    jump: DROP
+    destination: "{{ item }}"
+  loop: "{{ restund_blocked_ipv6_network_ranges }}"
+
+
+# NOTE: the exclamation mark (!) in front of source/destination item
+
+- name: 'Allowing ingress from pe-defined public IPv4 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv4'
+    chain: INPUT
+    jump: ACCEPT
+    source: "! {{ item }}"
+  loop: "{{ restund_blocked_ipv4_network_ranges }}"
+
+- name: 'Allowing ingress from pe-defined public IPv6 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv6'
+    chain: INPUT
+    jump: ACCEPT
+    source: "! {{ item }}"
+  loop: "{{ restund_blocked_ipv6_network_ranges }}"
+
+- name: 'Allowing egress to pe-defined public IPv4 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv4'
+    chain: OUTPUT
+    jump: ACCEPT
+    destination: "! {{ item }}"
+  loop: "{{ restund_blocked_ipv4_network_ranges }}"
+
+- name: 'Allowing egress to pe-defined public IPv6 network ranges'
+  ansible.builtin.iptables:
+    state: 'present'
+    ip_version: 'ipv6'
+    chain: OUTPUT
+    jump: ACCEPT
+    destination: "! {{ item }}"
+  loop: "{{ restund_blocked_ipv6_network_ranges }}"
+
+
+- name: 'Persisting iptables'
+  community.general.iptables_state:
+    state: 'saved'
+    path: >
+      {% if ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' %}
+        /etc/sysconfig/iptables
+      {% else %}
+        /etc/iptables/rules.v4
+      {% endif %}
+
+- name: 'Persisting ip6tables'
+  community.general.iptables_state:
+    state: 'saved'
+    path: >
+      {% if ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' %}
+        /etc/sysconfig/ip6tables
+      {% else %}
+        /etc/iptables/rules.v6
+      {% endif %}
