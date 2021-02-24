@@ -1,7 +1,7 @@
 restund_all_public_ipv4s: "{{ ansible_facts.all_ipv4_addresses | ipaddr('public') }}"
 restund_all_private_ipv4s: "{{ ansible_facts.all_ipv4_addresses | ipaddr('private') }}"
 
-# NOTE:
+# INFO: Lists of private IP ranges to help setting up firewall rules and prevent exposure of private services
 # DOCS: https://www.rtcsec.com/post/2021/01/details-about-cve-2020-26262-bypass-of-coturns-default-access-control-protection/#further-concerns-what-else
 restund_blocked_ipv4_network_ranges:
   - '0.0.0.0/8'
@@ -19,7 +19,7 @@ restund_blocked_ipv4_network_ranges:
   - '203.0.113.0/24'
   - '240.0.0.0/4'
 restund_blocked_ipv6_network_ranges:
-  - ':1/128'
+  - '::1/128'
   - '64:ff9b::/96'
   - '::ffff:0:0/96'
   - '100::/64'
