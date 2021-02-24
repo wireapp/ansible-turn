@@ -12,8 +12,7 @@ restund_metrics_listen_port: 8443
 restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_default_ipv4.interface }}{% else %}eth0{% endif %}"
 # NOTE:
 # DOCS: https://www.rtcsec.com/post/2021/01/details-about-cve-2020-26262-bypass-of-coturns-default-access-control-protection/#further-concerns-what-else
-restund_allowed_private_ipv4_network_ranges: []
-restund_allowed_private_ipv6_network_ranges: []
+restund_allowed_private_network_cidrs: []
 
 aci_base_url: https://s3-eu-west-1.amazonaws.com/public.wire.com
 rkt_s3_bucket_vhost: '{{ aci_base_url|regex_replace("^http(s?)://","") }}'
