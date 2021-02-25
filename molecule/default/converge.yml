@@ -11,5 +11,6 @@
       import_tasks: disable_getty.yml
   vars:
     restund_zrest_secret: 'must_be_defined_by_users!'
+    certbot_enabled: false
   roles:
     - ansible-restund
