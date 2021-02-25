@@ -1,4 +1,13 @@
 ---
+- name: Ensure docker dependencies are installed
+  apt:
+    state: present
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - gnupg-agent
+      - software-properties-common
+
 - name: Ensure docker key is present
   apt_key:
     url: "{{ docker_ubuntu_repo_gpgkey }}"
