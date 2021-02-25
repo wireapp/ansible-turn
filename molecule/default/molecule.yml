@@ -3,9 +3,11 @@ dependency:
   name: galaxy
 driver:
   name: docker
-lint:
-  name: yamllint
-  enabled: false
+lint: |
+  set -e
+  # yamllint .
+  # ansible-lint
+  # flake8
 platforms:
   - name: instance
     # for systemd, use these base images:
@@ -19,9 +21,6 @@ platforms:
     pre_build_image: true
 provisioner:
   name: ansible
-  lint:
-    name: ansible-lint
-    enabled: false
 scenario:
   name: default
   test_sequence:
