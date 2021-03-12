@@ -1,5 +1,5 @@
 ---
-restund_version: v0.4.15b1.0.51
+restund_version: v0.4.16b1.0.53
 restund_user: restund # This also create the same group
 restund_udp_listen_port: 3478
 restund_tcp_listen_port: 3478
