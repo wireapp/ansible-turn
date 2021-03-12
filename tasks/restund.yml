@@ -44,7 +44,7 @@
 - name: restund.conf
   template:
     src:   templates/restund.conf.j2
-    dest:  /etc/restund/restund.conf
+    dest:  /etc/restund.conf
     mode:  0440
     owner: "{{ restund_user }}"
     group: "{{ restund_user }}"
