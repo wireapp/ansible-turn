@@ -4,6 +4,11 @@
     name:
       - ufw
 
+- name: reading default local port range
+  shell:
+    cmd: "cat /proc/sys/net/ipv4/ip_local_port_range | tr '\t' '\n'"
+  register: local_port_range_list
+
 - name: activating ingress
   ufw:
     policy: deny
@@ -31,10 +36,12 @@
       [
         '22',
         '80',
-        restund_tcp_listen_port,
-        restund_http_status_port,
-        restund_metrics_listen_port
-      ] + ([ restund_tls_listen_port ] if restund_tls_certificate is defined else [])
+        restund_tcp_listen_port | string,
+        restund_http_status_port | string,
+        restund_metrics_listen_port | string
+      ]
+      + ([ restund_tls_listen_port ] if restund_tls_certificate is defined else [])
+      + ([ local_port_range_list.stdout_lines | join(':') ] if local_port_range_list | length > 0 else [])
     }}
 
 - name: allowing ingress UDP ports
@@ -44,9 +51,15 @@
     direction: in
     to_port: "{{ item }}"
     state: reloaded
-  loop:
-    - "{{ restund_udp_listen_port }}"
-    - "{{ restund_udp_status_port }}"
+  loop: >-
+    {{
+      [
+        restund_udp_listen_port | string,
+        restund_udp_status_port | string
+      ]
+      + ([ local_port_range_list.stdout_lines | join(':') ] if local_port_range_list | length > 0 else [])
+      + ([ local_port_range_list.stdout_lines | join(':') ] if local_port_range_list | length > 0 else [])
+    }}
 
 
 - name: allowing/overriding egress to provided private IPv4/IPv6 network ranges
@@ -65,10 +78,9 @@
     state: reloaded
   # NOTE: in cases where user-defined list contains the exact same CIDR/IP, this last task would
   #       overwrite allow rules set in previous tasks. This filter makes sure, that there is not
-  #       more than one rule for one CIDR?IP
+  #       more than one rule for one CIDR/IP
   loop: >-
     {{
       (restund_blocked_ipv4_network_ranges + restund_blocked_ipv6_network_ranges)
       | difference(restund_allowed_private_network_cidrs)
     }}
-
