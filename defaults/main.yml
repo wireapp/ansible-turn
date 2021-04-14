@@ -10,8 +10,7 @@ restund_http_status_port: 8080
 restund_metrics_listen_port: 8443
 
 restund_network_interface: "{% if ansible_default_ipv4 is defined %}{{ ansible_default_ipv4.interface }}{% else %}eth0{% endif %}"
-# NOTE:
-# DOCS: https://www.rtcsec.com/post/2021/01/details-about-cve-2020-26262-bypass-of-coturns-default-access-control-protection/#further-concerns-what-else
+# prevent certain CIDRs and their egress traffic from being blocked (see vars.yml restund_blocked_*)
 restund_allowed_private_network_cidrs: []
 
 aci_base_url: https://s3-eu-west-1.amazonaws.com/public.wire.com
