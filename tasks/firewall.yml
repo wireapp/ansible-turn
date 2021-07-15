@@ -9,19 +9,7 @@
     cmd: "cat /proc/sys/net/ipv4/ip_local_port_range | tr '\t' '\n'"
   register: local_port_range_list
 
-- name: activating ingress
-  ufw:
-    policy: deny
-    direction: incoming
-    state: enabled
-    logging: off
 
-- name: activating egress
-  ufw:
-    policy: allow
-    direction: outgoing
-    state: enabled
-    logging: off
 
 
 - name: allowing ingress TCP ports
@@ -84,3 +72,18 @@
       (restund_blocked_ipv4_network_ranges + restund_blocked_ipv6_network_ranges)
       | difference(restund_allowed_private_network_cidrs)
     }}
+    
+    
+- name: activating ingress
+  ufw:
+    policy: deny
+    direction: incoming
+    state: enabled
+    logging: off
+
+- name: activating egress
+  ufw:
+    policy: allow
+    direction: outgoing
+    state: enabled
+    logging: off
